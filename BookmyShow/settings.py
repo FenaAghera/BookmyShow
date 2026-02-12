@@ -118,12 +118,12 @@ if 'DATABASE_URL' in os.environ and os.environ.get('DATABASE_URL'):
             conn_max_age=600,
             conn_health_checks=True,
         )
-        # Only use PostgreSQL if connection is valid
-        if db_config.get('HOST') and 'railway' in str(db_config.get('HOST', '')).lower():
+        # Use PostgreSQL if valid config
+        if db_config.get('ENGINE') == 'django.db.backends.postgresql':
             DATABASES = {'default': db_config}
         else:
             raise ValueError("Invalid database URL")
-    except Exception as e:
+    except Exception:
         # Fallback if database not available (e.g., during build or invalid URL)
         DATABASES = {
             'default': {
