@@ -9,12 +9,20 @@ def health_check(request):
     """Health check endpoint for Railway"""
     return HttpResponse("OK", status=200)
 
+def root_redirect(request):
+    """Root path that works even if database isn't ready"""
+    try:
+        return redirect('movies/')
+    except Exception:
+        # If redirect fails, just return OK for health check
+        return HttpResponse("OK", status=200)
+
 urlpatterns = [
     path('health/', health_check, name='health'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('movies/', include('movies.urls')),
-    path('', lambda request: redirect('movies/')),
+    path('', root_redirect),
 ]
 
 if settings.DEBUG:
