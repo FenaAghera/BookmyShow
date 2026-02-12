@@ -1,0 +1,98 @@
+{% extends 'basic.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mt-4 mb-3">
+    <h1 class="mb-0">Movies</h1>
+</div>
+
+{% if selected_genre or selected_language or search_query %}
+    <div class="mb-3">
+        {% if search_query %}
+            <span class="badge badge-info mr-2">Search: {{ search_query }}</span>
+        {% endif %}
+        {% if selected_genre %}
+            <span class="badge badge-primary mr-2">Genre: {{ selected_genre }}</span>
+        {% endif %}
+        {% if selected_language %}
+            <span class="badge badge-success mr-2">Language: {{ selected_language }}</span>
+        {% endif %}
+    </div>
+{% endif %}
+
+<form method="get" class="card card-body mb-4">
+    <div class="form-row">
+        <div class="col-md-4 mb-2">
+            <label class="small text-muted mb-1">Search</label>
+            <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search movies...">
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="small text-muted mb-1">Genre</label>
+            <select name="genre" class="form-control">
+                <option value="">All Genres</option>
+                {% for g in genres %}
+                    <option value="{{ g }}" {% if g == selected_genre %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="small text-muted mb-1">Language</label>
+            <select name="language" class="form-control">
+                <option value="">All Languages</option>
+                {% for l in languages %}
+                    <option value="{{ l }}" {% if l == selected_language %}selected{% endif %}>{{ l }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 mb-2 d-flex align-items-end">
+            <button class="btn btn-primary btn-block" type="submit">Apply</button>
+        </div>
+    </div>
+    <div class="mt-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'movie_list' %}">Clear filters</a>
+    </div>
+</form>
+
+<div class="row">
+    {% for movie in movies %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if movie.image %}
+                    <img class="card-img-top" src="{{ movie.image.url }}" alt="{{ movie.name }}">
+                {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center text-white"
+                         style="height: 220px; background: linear-gradient(135deg, #6c5ce7, #0984e3);">
+                        <div class="text-center px-3">
+                            <div class="h5 mb-1">{{ movie.name }}</div>
+                            <div class="small">
+                                {% if movie.genre %}{{ movie.genre }}{% endif %}
+                                {% if movie.genre and movie.language %} • {% endif %}
+                                {% if movie.language %}{{ movie.language }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title mb-1">{{ movie.name }}</h5>
+                    <div class="text-muted small mb-2">
+                        Rating: {{ movie.rating }}
+                        {% if movie.genre %} • {{ movie.genre }}{% endif %}
+                        {% if movie.language %} • {{ movie.language }}{% endif %}
+                    </div>
+                    <p class="card-text mb-2"><strong>Cast:</strong> {{ movie.cast }}</p>
+                    {% if movie.description %}
+                        <p class="card-text text-muted small">{{ movie.description|truncatechars:120 }}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white">
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'movie_detail' movie.id %}">View Details</a>
+                    <a class="btn btn-sm btn-primary ml-2" href="{% url 'theater_list' movie.id %}">Book Now</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No movies found for the selected filters.</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

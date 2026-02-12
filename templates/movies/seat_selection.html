@@ -1,0 +1,198 @@
+{% extends 'basic.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Select Seats - {{ theater.name }}</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ theater.movie.name }}</h5>
+                    <p class="card-text">
+                        <strong>Show Time:</strong> {{ theater.time|date:"F d, Y - g:i A" }}<br>
+                        <strong>Price per seat:</strong> ₹200
+                    </p>
+                </div>
+            </div>
+            
+            {% if error_message %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ error_message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+            
+            <form method="POST" id="seat-selection-form">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <h5>Screen</h5>
+                    <div class="text-center mb-4 p-3 bg-dark text-white rounded">
+                        <i class="fas fa-film"></i> SCREEN THIS WAY
+                    </div>
+                </div>
+                
+                <div class="seat-map mb-4">
+                    {% if seats %}
+                        <div class="row">
+                        {% for seat in seats %}
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-2">
+                                <div class="seat-item text-center">
+                                    {% if seat.is_booked %}
+                                        <label class="seat-label booked-seat" style="cursor: not-allowed;" title="Booked">
+                                            <input type="checkbox" disabled>
+                                            <span class="seat-number">{{ seat.seat_number }}</span>
+                                        </label>
+                                    {% elif seat.is_reserved %}
+                                        {% if seat.get_reservation.user == user %}
+                                            <label class="seat-label reserved-seat-by-me" title="Reserved by you">
+                                                <input type="checkbox" name="seats" value="{{ seat.id }}" checked>
+                                                <span class="seat-number">{{ seat.seat_number }}</span>
+                                            </label>
+                                        {% else %}
+                                            <label class="seat-label reserved-seat" style="cursor: not-allowed;" title="Reserved">
+                                                <input type="checkbox" disabled>
+                                                <span class="seat-number">{{ seat.seat_number }}</span>
+                                            </label>
+                                        {% endif %}
+                                    {% else %}
+                                        <label class="seat-label available-seat" title="Available">
+                                            <input type="checkbox" name="seats" value="{{ seat.id }}">
+                                            <span class="seat-number">{{ seat.seat_number }}</span>
+                                        </label>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <h5>No Seats Available</h5>
+                            <p>This theater currently has no seats configured. Please contact support or try another theater.</p>
+                            <a href="{% url 'theater_list' theater.movie.id %}" class="btn btn-primary">Back to Theaters</a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="seat-legend mb-4">
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <div class="legend-item mr-3 mb-2">
+                            <span class="seat-label available-seat d-inline-block mr-2"></span>
+                            <span>Available</span>
+                        </div>
+                        <div class="legend-item mr-3 mb-2">
+                            <span class="seat-label reserved-seat-by-me d-inline-block mr-2"></span>
+                            <span>Your Reservation</span>
+                        </div>
+                        <div class="legend-item mr-3 mb-2">
+                            <span class="seat-label reserved-seat d-inline-block mr-2"></span>
+                            <span>Reserved</span>
+                        </div>
+                        <div class="legend-item mb-2">
+                            <span class="seat-label booked-seat d-inline-block mr-2"></span>
+                            <span>Booked</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if seats %}
+                <div class="text-center mb-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5" id="book-btn">
+                        Proceed to Payment
+                    </button>
+                    <a href="{% url 'theater_list' theater.movie.id %}" class="btn btn-outline-secondary btn-lg ml-2">Back</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .seat-label {
+        display: inline-block;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+        min-width: 60px;
+        background: white;
+    }
+    
+    .seat-label input[type="checkbox"] {
+        display: none;
+    }
+    
+    .seat-label.available-seat:hover {
+        background: #e3f2fd;
+        border-color: #2196F3;
+    }
+    
+    .seat-label input[type="checkbox"]:checked + .seat-number {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .seat-label.available-seat input[type="checkbox"]:checked ~ .seat-number,
+    .seat-label.available-seat input[type="checkbox"]:checked {
+        background: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    .seat-label.booked-seat {
+        background: #f5f5f5;
+        border-color: #ccc;
+        color: #999;
+    }
+    
+    .seat-label.reserved-seat {
+        background: #fff3cd;
+        border-color: #ffc107;
+        color: #856404;
+    }
+    
+    .seat-label.reserved-seat-by-me {
+        background: #d4edda;
+        border-color: #28a745;
+        color: #155724;
+    }
+    
+    .seat-label.reserved-seat-by-me input[type="checkbox"]:checked ~ .seat-number,
+    .seat-label.reserved-seat-by-me input[type="checkbox"]:checked {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    
+    .seat-number {
+        display: block;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 576px) {
+        .seat-label {
+            padding: 8px;
+            min-width: 50px;
+        }
+        .seat-number {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<script>
+    document.getElementById('seat-selection-form').addEventListener('submit', function(e) {
+        var selectedSeats = document.querySelectorAll('input[name="seats"]:checked');
+        if (selectedSeats.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one seat.');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

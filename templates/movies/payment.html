@@ -1,0 +1,115 @@
+{% extends 'basic.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Complete Payment</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Booking Summary</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Movie:</strong>
+                            </div>
+                            <div class="col-6 text-right">
+                                {{ theater.movie.name }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Theater:</strong>
+                            </div>
+                            <div class="col-6 text-right">
+                                {{ theater.name }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Show Time:</strong>
+                            </div>
+                            <div class="col-6 text-right">
+                                {{ theater.time|date:"F d, Y - g:i A" }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Number of Seats:</strong>
+                            </div>
+                            <div class="col-6 text-right">
+                                {{ seat_count }}
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <h5>Total Amount:</h5>
+                            </div>
+                            <div class="col-6 text-right">
+                                <h5>₹{{ total_amount }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form id="payment-form" method="POST" action="{% url 'payment_success' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id" value="{{ order_id }}">
+                        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+                        
+                        <div class="text-center mb-4">
+                            <button type="submit" class="btn btn-success btn-lg px-5" id="pay-button">
+                                Pay ₹{{ total_amount }}
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center">
+                        <a href="{% url 'book_seats' theater.id %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById('pay-button').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        var options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": {{ amount }},
+            "currency": "INR",
+            "name": "BookMyShow",
+            "description": "Movie Ticket Booking",
+            "order_id": "{{ order_id }}",
+            "handler": function (response) {
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                document.getElementById('payment-form').submit();
+            },
+            "prefill": {
+                "name": "{{ user.first_name }} {{ user.last_name }}",
+                "email": "{{ user.email }}",
+            },
+            "theme": {
+                "color": "#007bff"
+            },
+            "modal": {
+                "ondismiss": function(){
+                    window.location.href = "{% url 'payment_failure' %}";
+                }
+            }
+        };
+        
+        var rzp = new Razorpay(options);
+        rzp.open();
+    });
+</script>
+{% endblock %}

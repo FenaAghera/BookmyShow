@@ -1,0 +1,333 @@
+{% extends 'basic.html' %}
+
+{% block title %}Admin Dashboard - BookMyShow{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-0">Admin Dashboard</h1>
+            <p class="text-muted">Analytics and Statistics</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2 class="mb-0">₹{{ total_revenue|floatformat:2 }}</h2>
+                    <small>From completed bookings</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bookings</h5>
+                    <h2 class="mb-0">{{ total_bookings }}</h2>
+                    <small>Completed transactions</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Movies</h5>
+                    <h2 class="mb-0">{{ total_movies }}</h2>
+                    <small>In database</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Reservations</h5>
+                    <h2 class="mb-0">{{ active_reservations }}</h2>
+                    <small>Pending payment</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Most Popular Movies -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Most Popular Movies</h5>
+                </div>
+                <div class="card-body">
+                    {% if popular_movies %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Movie</th>
+                                        <th>Tickets Sold</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for movie in popular_movies %}
+                                        <tr>
+                                            <td><strong>{{ forloop.counter }}</strong></td>
+                                            <td>{{ movie.name }}</td>
+                                            <td><span class="badge badge-primary">{{ movie.ticket_count }}</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No bookings yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue by Movie -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Revenue by Movie</h5>
+                </div>
+                <div class="card-body">
+                    {% if revenue_by_movie %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Movie</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for movie in revenue_by_movie %}
+                                        <tr>
+                                            <td>{{ movie.name }}</td>
+                                            <td><strong>₹{{ movie.revenue|floatformat:2 }}</strong></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No revenue data yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Busiest Theaters -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Busiest Theaters</h5>
+                </div>
+                <div class="card-body">
+                    {% if busy_theaters %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Theater</th>
+                                        <th>Movie</th>
+                                        <th>Bookings</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for theater in busy_theaters %}
+                                        <tr>
+                                            <td>{{ theater.name }}</td>
+                                            <td>{{ theater.movie.name }}</td>
+                                            <td><span class="badge badge-info">{{ theater.booking_count }}</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No theater data yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Busiest Showtimes -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">Busiest Showtimes</h5>
+                </div>
+                <div class="card-body">
+                    {% if busy_showtimes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Theater</th>
+                                        <th>Show Time</th>
+                                        <th>Bookings</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for showtime in busy_showtimes %}
+                                        <tr>
+                                            <td>{{ showtime.name }}</td>
+                                            <td>{{ showtime.time|date:"M d, Y - g:i A" }}</td>
+                                            <td><span class="badge badge-warning">{{ showtime.booking_count }}</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No showtime data yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>User</th>
+                                        <th>Movie</th>
+                                        <th>Theater</th>
+                                        <th>Seat</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in recent_bookings %}
+                                        <tr>
+                                            <td><code>{{ booking.booking_id }}</code></td>
+                                            <td>{{ booking.user.username }}</td>
+                                            <td>{{ booking.movie.name }}</td>
+                                            <td>{{ booking.theater.name }}</td>
+                                            <td>{{ booking.seat.seat_number }}</td>
+                                            <td>₹{{ booking.amount|floatformat:2 }}</td>
+                                            <td>{{ booking.booked_at|date:"M d, Y - g:i A" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent bookings.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Popular Movies Chart</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="popularMoviesChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Revenue by Movie</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Popular Movies Chart
+    const popularMoviesData = {
+        labels: [{% for movie in popular_movies %}'{{ movie.name|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Tickets Sold',
+            data: [{% for movie in popular_movies %}{{ movie.ticket_count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const popularMoviesCtx = document.getElementById('popularMoviesChart').getContext('2d');
+    new Chart(popularMoviesCtx, {
+        type: 'bar',
+        data: popularMoviesData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Revenue Chart
+    const revenueData = {
+        labels: [{% for movie in revenue_by_movie %}'{{ movie.name|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: [{% for movie in revenue_by_movie %}{{ movie.revenue|floatformat:0 }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: revenueData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    @media (max-width: 768px) {
+        .card {
+            margin-bottom: 1rem;
+        }
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+    }
+</style>
+{% endblock %}

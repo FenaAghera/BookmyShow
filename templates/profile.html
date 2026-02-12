@@ -1,0 +1,273 @@
+{% extends "basic.html" %}
+{% block title %}My Profile - BookMyShow{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Profile Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center mb-3 mb-md-0">
+                            <div class="profile-avatar mx-auto" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; border: 4px solid rgba(255,255,255,0.3);">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
+                            <p class="mb-2"><i class="fas fa-envelope"></i> {{ user.email }}</p>
+                            <p class="mb-0"><i class="fas fa-user-circle"></i> @{{ user.username }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #667eea !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Bookings</h6>
+                            <h3 class="mb-0">{{ total_bookings }}</h3>
+                        </div>
+                        <div class="text-primary" style="font-size: 2.5rem;">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #28a745 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Spent</h6>
+                            <h3 class="mb-0">₹{{ total_spent|floatformat:0 }}</h3>
+                        </div>
+                        <div class="text-success" style="font-size: 2.5rem;">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #ffc107 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Upcoming Shows</h6>
+                            <h3 class="mb-0">{{ upcoming_bookings }}</h3>
+                        </div>
+                        <div class="text-warning" style="font-size: 2.5rem;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card shadow-sm border-0 h-100" style="border-left: 4px solid #17a2b8 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Active Reservations</h6>
+                            <h3 class="mb-0">{{ active_reservations }}</h3>
+                        </div>
+                        <div class="text-info" style="font-size: 2.5rem;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Profile Update -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-edit"></i> Update Profile</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_username"><i class="fas fa-user"></i> Username</label>
+                            {{ u_form.username }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_email"><i class="fas fa-envelope"></i> Email</label>
+                            {{ u_form.email }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_first_name"><i class="fas fa-id-card"></i> First Name</label>
+                            {{ u_form.first_name }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_last_name"><i class="fas fa-id-card"></i> Last Name</label>
+                            {{ u_form.last_name }}
+                        </div>
+                        <button class="btn btn-primary btn-block" type="submit">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                    </form>
+                    <hr>
+                    <p class="mb-0 text-center">
+                        <small>Want to change your password? <a href="{% url 'reset_password' %}"><i class="fas fa-key"></i> Reset it here</a></small>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Favorite Genres -->
+            {% if favorite_genres %}
+            <div class="card shadow-sm border-0 mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-heart"></i> Favorite Genres</h5>
+                </div>
+                <div class="card-body">
+                    {% for genre in favorite_genres %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-film"></i> {{ genre.genre }}</span>
+                                <span class="badge badge-info">{{ genre.count }} booking{{ genre.count|pluralize }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Bookings -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-ticket-alt"></i> My Bookings</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a href="?filter=all" class="btn btn-light {% if filter_type == 'all' %}active{% endif %}">All</a>
+                        <a href="?filter=upcoming" class="btn btn-light {% if filter_type == 'upcoming' %}active{% endif %}">Upcoming</a>
+                        <a href="?filter=past" class="btn btn-light {% if filter_type == 'past' %}active{% endif %}">Past</a>
+                        <a href="?filter=completed" class="btn btn-light {% if filter_type == 'completed' %}active{% endif %}">Completed</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="list-group">
+                            {% for booking in bookings %}
+                                <div class="list-group-item mb-3 border rounded shadow-sm">
+                                    <div class="row">
+                                        <div class="col-md-2 text-center mb-2 mb-md-0">
+                                            {% if booking.movie.image %}
+                                                <img src="{{ booking.movie.image.url }}" alt="{{ booking.movie.name }}" class="img-fluid rounded" style="max-height: 80px;">
+                                            {% else %}
+                                                <div class="bg-secondary text-white rounded d-flex align-items-center justify-content-center" style="height: 80px;">
+                                                    <i class="fas fa-film fa-2x"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-10">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h6 class="mb-1"><strong>{{ booking.movie.name }}</strong></h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-barcode"></i> <strong>Booking ID:</strong> 
+                                                        <code>{{ booking.booking_id|default:"N/A" }}</code>
+                                                    </small>
+                                                </div>
+                                                <span class="badge badge-{% if booking.payment_status == 'completed' %}success{% elif booking.payment_status == 'failed' %}danger{% else %}warning{% endif %} badge-pill">
+                                                    {{ booking.get_payment_status_display }}
+                                                </span>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p class="mb-1 small">
+                                                        <i class="fas fa-building text-primary"></i> <strong>Theater:</strong> {{ booking.theater.name }}<br>
+                                                        <i class="fas fa-chair text-success"></i> <strong>Seat:</strong> {{ booking.seat.seat_number }}<br>
+                                                        <i class="fas fa-rupee-sign text-warning"></i> <strong>Amount:</strong> ₹{{ booking.amount|floatformat:2 }}
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p class="mb-1 small">
+                                                        <i class="far fa-calendar-alt text-info"></i> <strong>Show Time:</strong><br>
+                                                        {{ booking.theater.time|date:"F d, Y" }}<br>
+                                                        <strong>{{ booking.theater.time|date:"g:i A" }}</strong><br>
+                                                        <i class="far fa-clock text-muted"></i> <small>Booked: {{ booking.booked_at|date:"M d, Y" }}</small>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {% if booking.theater.time > now %}
+                                                <div class="mt-2">
+                                                    <span class="badge badge-info">
+                                                        <i class="fas fa-clock"></i> Upcoming Show
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">No bookings found</h5>
+                            <p class="text-muted">{% if filter_type != 'all' %}No {{ filter_type }} bookings.{% else %}Start booking your favorite movies!{% endif %}</p>
+                            <a href="{% url 'movie_list' %}" class="btn btn-primary">
+                                <i class="fas fa-film"></i> Book Tickets Now
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-avatar {
+        transition: transform 0.3s;
+    }
+    .profile-avatar:hover {
+        transform: scale(1.1);
+    }
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
+    .list-group-item {
+        transition: all 0.3s;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    .form-control {
+        border-radius: 5px;
+    }
+    .btn-group .btn.active {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    @media (max-width: 768px) {
+        .profile-avatar {
+            width: 80px !important;
+            height: 80px !important;
+        }
+        .card-body h3 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
