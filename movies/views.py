@@ -19,6 +19,10 @@ except ImportError:
     razorpay_errors = None
     RAZORPAY_AVAILABLE = False
 
+def health_check(request):
+    """Health check endpoint for Railway"""
+    return HttpResponse("OK", status=200)
+
 def movie_list(request):
     search_query = request.GET.get('search', '').strip()
     selected_genre = request.GET.get('genre', '').strip()
@@ -190,25 +194,10 @@ def initiate_payment(request):
             messages.warning(request, f'{expired_count} seat reservation(s) expired. Please select seats again.')
             return redirect('book_seats', theater_id=theater_id)
     
-    # Initialize Razorpay client
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    
-    # Create order
-    amount_in_paise = int(total_amount * 100)  # Convert to paise
-    order_data = {
-        'amount': amount_in_paise,
-        'currency': 'INR',
-        'receipt': f'order_{theater_id}_{request.user.id}',
-        'notes': {
-            'theater_id': str(theater_id),
-            'user_id': str(request.user.id),
-        }
-    }
-    
     # Check if Razorpay keys are configured (not placeholder values)
     if (settings.RAZORPAY_KEY_ID == 'rzp_test_xxxxxxxxxxxxx' or 
         settings.RAZORPAY_KEY_SECRET == 'your_razorpay_secret_key' or
-        'xxxxx' in settings.RAZORPAY_KEY_ID):
+        'xxxxx' in str(settings.RAZORPAY_KEY_ID)):
         # Test mode - allow booking without payment
         messages.warning(request, 'Payment gateway not configured. Proceeding in test mode (booking will be confirmed without payment).')
         
@@ -272,6 +261,21 @@ def initiate_payment(request):
         else:
             messages.error(request, 'Failed to create bookings.')
             return redirect('book_seats', theater_id=theater_id)
+    
+    # Initialize Razorpay client
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    # Create order
+    amount_in_paise = int(total_amount * 100)  # Convert to paise
+    order_data = {
+        'amount': amount_in_paise,
+        'currency': 'INR',
+        'receipt': f'order_{theater_id}_{request.user.id}',
+        'notes': {
+            'theater_id': str(theater_id),
+            'user_id': str(request.user.id),
+        }
+    }
     
     try:
         order = client.order.create(data=order_data)
@@ -449,11 +453,12 @@ def payment_success(request):
                     messages.error(request, 'Failed to create bookings. Please contact support.')
                     return redirect('movie_list')
                     
-        except razorpay.errors.SignatureVerificationError:
-            messages.error(request, 'Payment verification failed. Please try again.')
-            return redirect('initiate_payment')
-        except Exception as e:
-            messages.error(request, f'Payment processing error: {str(e)}')
+        except Exception as verify_error:
+            error_msg = str(verify_error)
+            if 'Signature' in error_msg or 'signature' in error_msg.lower():
+                messages.error(request, 'Payment verification failed. Please try again.')
+            else:
+                messages.error(request, f'Payment verification error: {error_msg}')
             return redirect('initiate_payment')
     
     return redirect('movie_list')

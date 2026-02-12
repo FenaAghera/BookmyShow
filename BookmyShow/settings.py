@@ -110,18 +110,21 @@ WSGI_APPLICATION = 'BookmyShow.wsgi.application'
 
 # Database configuration
 # Railway provides DATABASE_URL automatically
-if 'DATABASE_URL' in os.environ:
+if 'DATABASE_URL' in os.environ and os.environ.get('DATABASE_URL'):
     try:
         import dj_database_url
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=os.environ.get('DATABASE_URL'),
-                conn_max_age=600,
-                conn_health_checks=True,
-            )
-        }
-    except Exception:
-        # Fallback if database not available (e.g., during build)
+        db_config = dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+        # Only use PostgreSQL if connection is valid
+        if db_config.get('HOST') and 'railway' in str(db_config.get('HOST', '')).lower():
+            DATABASES = {'default': db_config}
+        else:
+            raise ValueError("Invalid database URL")
+    except Exception as e:
+        # Fallback if database not available (e.g., during build or invalid URL)
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
